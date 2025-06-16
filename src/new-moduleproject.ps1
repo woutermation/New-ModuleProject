@@ -201,8 +201,8 @@ if ($Scripts.IsPresent)
         New-ModuleManifest -Path "$($Path)\$($ModuleName)\Source\$($ModuleName).psd1" -ModuleVersion "0.0.1"
     }
 
-    Write-Verbose -Message "Downloading build script from: https://raw.githubusercontent.com/hoejsagerc/New-ModuleProject/main/Source/build.ps1"
-    Invoke-WebRequest -Uri "https://raw.githubusercontent.com/hoejsagerc/New-ModuleProject/main/Source/build.ps1" -OutFile "$($Path)\$($ModuleName)\build.ps1"
+    Write-Verbose -Message "Downloading build script from: https://raw.githubusercontent.com/woutermation/New-ModuleProject/refs/heads/main/src/build.ps1"
+    Invoke-WebRequest -Uri "https://raw.githubusercontent.com/woutermation/New-ModuleProject/refs/heads/main/src/build.ps1" -OutFile "$($Path)\$($ModuleName)\build.ps1"
 
     if (Test-Path "$($Path)\$($ModuleName)\build.ps1")
     {
@@ -210,7 +210,7 @@ if ($Scripts.IsPresent)
     }
     else
     {
-        throw "Failed to download the build script from: https://raw.githubusercontent.com/hoejsagerc/New-ModuleProject/main/Source/build.ps1"
+        throw "Failed to download the build script from: https://raw.githubusercontent.com/woutermation/New-ModuleProject/refs/heads/main/src/build.ps1"
     }
 }
 #EndRegion - Scripts
