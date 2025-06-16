@@ -137,6 +137,7 @@ task DebugBuild -if ($Configuration -eq "debug") {
             $content = Get-Content -Path ".\Source\Public\$($function)"
             Add-Content -Path $ModuleFile -Value "#Region - $function"
             Add-Content -Path $ModuleFile -Value $content
+            Write-Verbose -Message "Export Alias is set to $($ExportAlias)"
             if ($ExportAlias.IsPresent)
             {
                 $AliasSwitch = $false
@@ -391,7 +392,6 @@ task Clean -if($Configuration -eq "Release") {
 }
 
 task Publish -if($Configuration -eq "Release") {
-
     Write-Verbose -Message "Publishing Module to PowerShell gallery"
     Write-Verbose -Message "Importing Module .\Output\$($ModuleName)\$ModuleVersion\$($ModuleName).psm1"
     Import-Module ".\Output\$($ModuleName)\$ModuleVersion\$($ModuleName).psm1"

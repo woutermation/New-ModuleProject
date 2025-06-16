@@ -21,7 +21,9 @@ Edit the [ ModuleName ]/Source/[ ModuleName.psd1 ], and apply all the settings:
 - Description
 - ..
 
-Now if you use my build.ps1 script you do not to have think about version control in your module. The script will automatically calculate the correct version for you and provide the version to your Module manifest. It does this by calculating the number of cmdlets and function, and just append the build number by 1. The only thing you would have to manually control is the Major versions. So if you had a new Major version change you would have to open the Module manifest located in: newmodule/Source/newmodule.psd1 and change the major version number.
+Now if you use my build.ps1 script you do not to have think about version control in your module.
+The script will automatically calculate the correct version for you and provide the version to your Module manifest. It does this by calculating the number of cmdlets and function, and just append the build number by 1.
+The only thing you would have to manually control is the Major versions. So if you had a new Major version change you would have to open the Module manifest located in: newmodule/Source/newmodule.psd1 and change the major version number.
 
 Start with adding functions.
 
@@ -56,5 +58,4 @@ Invoke-Build -File ./build.ps1 -Configuration "Release"
 ## Source
 
 [New-ModuleProjectNew-ModuleProject](https://github.com/hoejsagerc/New-ModuleProjectNew-ModuleProject)  
-[how-to](https://scriptingchris.tech/2021/05/07/how-to-write-a-powershell-module/)  
-
+[how-to](https://scriptingchris.tech/2021/05/07/how-to-write-a-powershell-module/)
