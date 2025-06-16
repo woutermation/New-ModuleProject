@@ -1,7 +1,10 @@
 param (
-    [ValidateSet("Release", "debug")]$Configuration = "debug",
-    [Parameter(Mandatory = $false)][String]$NugetAPIKey,
-    [Parameter(Mandatory = $false)][Switch]$ExportAlias
+    [ValidateSet("Release", "debug")]
+    $Configuration = "debug",
+    [Parameter(Mandatory = $false)]
+    [String]$NugetAPIKey,
+    [Parameter(Mandatory = $false)]
+    [Switch]$ExportAlias
 )
 
 task Init {
