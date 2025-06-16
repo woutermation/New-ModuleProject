@@ -2,9 +2,9 @@ param (
     [ValidateSet("Release", "debug")]
     $Configuration = "debug",
     [Parameter(Mandatory = $false)]
-    [String]$NugetAPIKey,
+    [string]$NugetAPIKey,
     [Parameter(Mandatory = $false)]
-    [Switch]$ExportAlias
+    [switch]$ExportAlias
 )
 
 task Init {
@@ -137,7 +137,6 @@ task DebugBuild -if ($Configuration -eq "debug") {
             $content = Get-Content -Path ".\Source\Public\$($function)"
             Add-Content -Path $ModuleFile -Value "#Region - $function"
             Add-Content -Path $ModuleFile -Value $content
-            Write-Verbose -Message "Export Alias is set to $($ExportAlias)"
             if ($ExportAlias.IsPresent)
             {
                 $AliasSwitch = $false
@@ -379,8 +378,6 @@ task Build -if($Configuration -eq "Release") {
             New-ExternalHelp ".\Docs" -OutputPath ".\Output\$($ModuleName)\$($ModuleVersion)\en-US\"
         }
     }
-
-
 }
 
 task Clean -if($Configuration -eq "Release") {
