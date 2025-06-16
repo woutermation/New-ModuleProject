@@ -1,9 +1,5 @@
 @{
-    Rules = @{
-        PSReviewUnusedParameter = @{
-            CommandsToTraverse = @(
-                'Invoke-PSFProtectedCommand'
-            )
-        }
-    }
+    ExcludeRules = @(
+       'PSReviewUnusedParameter'
+    )
 }
