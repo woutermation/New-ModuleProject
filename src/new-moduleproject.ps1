@@ -107,8 +107,85 @@ Param(
     [Parameter(Mandatory = $True)][String]$ModuleName,
     [Parameter(Mandatory = $false)][Switch]$Prerequisites,
     [Parameter(Mandatory = $true)][Switch]$Initialize,
-    [Parameter(Mandatory = $false)][Switch]$Scripts
+    [Parameter(Mandatory = $false)][Switch]$Scripts,
+    [Parameter(Mandatory = $false)][Switch]$RemoveExistingModule
 )
+
+#Region - Add-Folder
+function Add-Folder
+{
+    <#
+    .SYNOPSIS
+        Create new folder
+    .DESCRIPTION
+        This functions will create a new folder if the folder does not exist
+        The complete path can be specified all parent folders are created
+    .PARAMETER folderPath
+        The path of the new folder
+    .EXAMPLE
+        Add-Folder -folderPath .\result\$tenantId
+    .EXAMPLE
+        Add-Folder -folderPath C:\Temp\result
+    .INPUTS
+        folderPath
+    .OUTPUTS
+        The created folder, or nothing if it exists
+    .NOTES
+        Author: Wouter de Dood
+    #>
+
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true)]
+        [string]$folderPath,
+        [Parameter(Mandatory = $false)]
+        [switch]$removeIfPresent
+    )
+    begin
+    {
+        $functionName = $($MyInvocation.MyCommand.Name)
+        Write-Verbose -Message "[$($functionName)] - Start process for folder [ $($folderPath) ]"
+    }
+    process
+    {
+        if ((Test-Path $folderPath) -and $removeIfPresent.IsPresent)
+        {
+            try
+            {
+                Write-Verbose -Message "[$($functionName)] - Folder [ $($folderPath) ] already exists, removing it"
+                Remove-Item -Path $folderPath -Recurse -Force
+            }
+            catch
+            {
+                Write-Error -Message "[$($functionName)] - $($_.Exception.Message)"
+                throw($($_.Exception.Message))
+            }
+        }
+        if (!(Test-Path $folderPath))
+        {
+            try
+            {
+                New-Item -ItemType Directory -Path $folderPath | Out-Null
+                Write-Verbose -Message "[$($functionName)] - Folder [ $($folderPath) ] created"
+            }
+            catch
+            {
+                Write-Error -Message "[$($functionName)] - $($_.Exception.Message)"
+                throw($($_.Exception.Message))
+            }
+        }
+        else
+        {
+            Write-Verbose -Message "[$($functionName)] - Folder [ $($folderPath) ] already exists, skipping creation"
+        }
+    }
+    end
+    {
+        Write-Verbose -Message "[$($functionName)] - End process for folder [ $($folderPath) ]"
+    }
+}
+#EndRegion
+
 
 #Region - Prerequisites
 if ($Prerequisites.IsPresent)
@@ -131,7 +208,7 @@ if ($Prerequisites.IsPresent)
     if (-not(Get-Module -Name Pester -ListAvailable))
     {
         Write-Warning "Module 'Pester' is missing or out of date. Installing module now."
-        Install-Module -Name Pester -Scope CurrentUser -Force
+        Install-Module -Name Pester -Scope CurrentUser -Force -MinimumVersion 5.1.1 -SkipPublisherCheck
     }
 
     Write-Verbose -Message "Initializing platyPS"
@@ -145,7 +222,7 @@ if ($Prerequisites.IsPresent)
     if (-not(Get-Module -Name InvokeBuild -ListAvailable))
     {
         Write-Warning "Module 'InvokeBuild' is missing or out of date. Installing module now."
-        Install-Module -Name InvokeBuild -Scope CurrentUser -Force
+        Install-Module -Name InvokeBuild -Scope CurrentUser -Force -AllowClobber
     }
 }
 #EndRegion - Prerequisites
@@ -153,41 +230,14 @@ if ($Prerequisites.IsPresent)
 #Region - Initialize
 if ($Initialize.IsPresent)
 {
-    Write-Verbose -Message "Creating Module folder structure"
+    Write-Verbose -Message "Creating Module folder structure $($RemoveExistingModule)"
+    Add-Folder -folderPath "$($Path)\$($ModuleName)" -removeIfPresent:$($RemoveExistingModule)
 
-    try
+    $subFolders = @("Source\Private", "Source\Public", "Tests", "Output", "Docs")
+    foreach ($subFolder in $subFolders)
     {
-        Write-Verbose -Message "Creating Module root folder"
-        New-Item -Path "$($Path)\$($ModuleName)" -ItemType Directory
-    }
-    catch
-    {
-        Write-Error -Message "Error - Failed creating the module root folder"
-    }
-    if (Test-Path "$($Path)\$($ModuleName)")
-    {
-        try
-        {
-            Write-Verbose -Message "Creating Source, Tests, Output, Docs folders"
-            New-Item -Path "$($Path)\$($ModuleName)\Source" -ItemType Directory
-            New-Item -Path "$($Path)\$($ModuleName)\Tests" -ItemType Directory
-            New-Item -Path "$($Path)\$($ModuleName)\Output" -ItemType Directory
-            New-Item -Path "$($Path)\$($ModuleName)\Docs" -ItemType Directory
-        }
-        catch
-        {
-            Write-Error -Message "Error - Failed creating Source, Test, Output and Docs folder"
-        }
-        try
-        {
-            Write-Verbose -Message "Creating Private and Public functions folder"
-            New-Item -Path "$($Path)\$($ModuleName)\Source\Private" -ItemType Directory
-            New-Item -Path "$($Path)\$($ModuleName)\Source\Public" -ItemType Directory
-        }
-        catch
-        {
-            Write-Error -Message "Error - Failed creating private and public functions folders"
-        }
+        $fullPath = Join-Path -Path "$($Path)\$($ModuleName)" -ChildPath $subFolder
+        Add-Folder -folderPath $fullPath -removeIfPresent:$($RemoveExistingModule)
     }
 }
 #EndRegion - Initialize
