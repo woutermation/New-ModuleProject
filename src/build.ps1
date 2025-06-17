@@ -38,23 +38,31 @@ task Init {
 }
 
 task Test {
-    try
-    {
-        Write-Verbose -Message "Running PSScriptAnalyzer on Public functions"
-        Invoke-ScriptAnalyzer ".\Source\Public" -Recurse
-        Write-Verbose -Message "Running PSScriptAnalyzer on Private functions"
-        Invoke-ScriptAnalyzer ".\Source\Private" -Recurse
-    }
-    catch
-    {
-        throw "Couldn't run Script Analyzer"
-    }
-
     Write-Verbose -Message "Running Pester Tests"
-    $Results = Invoke-Pester -Script ".\Tests\*.ps1" -OutputFormat NUnitXml -OutputFile ".\Tests\TestResults.xml"
-    if ($Results.FailedCount -gt 0)
+    if (Get-ChildItem -Path ".\Tests\" -Filter "*tests.ps1")
     {
-        throw "$($Results.FailedCount) Tests failed"
+        Write-Verbose -Message "Pester Tests found, running them now."
+        try
+        {
+            Write-Verbose -Message "Running PSScriptAnalyzer on Public functions"
+            Invoke-ScriptAnalyzer ".\Source\Public" -Recurse
+            Write-Verbose -Message "Running PSScriptAnalyzer on Private functions"
+            Invoke-ScriptAnalyzer ".\Source\Private" -Recurse
+        }
+        catch
+        {
+            throw "Couldn't run Script Analyzer"
+        }
+        $Results = Invoke-Pester -Script ".\Tests\*.ps1" -OutputFormat NUnitXml -OutputFile ".\Tests\TestResults.xml"
+        if ($Results.FailedCount -gt 0)
+        {
+            throw "$($Results.FailedCount) Tests failed"
+        }
+    }
+    else
+    {
+        Write-Warning -Message "No Pester Tests found in .\Tests\*.ps1"
+        return
     }
 }
 
@@ -116,7 +124,7 @@ task DebugBuild -if ($Configuration -eq "debug") {
         $functionsToExport = New-Object -TypeName System.Collections.ArrayList
         foreach ($function in $publicFunctions.Name)
         {
-            write-Verbose -Message "Exporting function: $(($function.split('.')[0]).ToString())"
+            Write-Verbose -Message "Exporting function: $(($function.split('.')[0]).ToString())"
             $functionsToExport.Add(($function.split('.')[0]).ToString())
         }
         Update-ModuleManifest -Path ".\Output\temp\$($ModuleName)\$($ModuleVersion)\$($ModuleName).psd1" -FunctionsToExport $functionsToExport
