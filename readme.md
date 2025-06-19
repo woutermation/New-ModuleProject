@@ -59,3 +59,13 @@ Invoke-Build -File ./build.ps1 -Configuration "Release"
 
 [New-ModuleProjectNew-ModuleProject](https://github.com/hoejsagerc/New-ModuleProjectNew-ModuleProject)  
 [how-to](https://scriptingchris.tech/2021/05/07/how-to-write-a-powershell-module/)
+
+## Local linter
+
+```bash
+docker run --rm -e RUN_LOCAL=true --env-file "./.linter/super-linter.env" -v $PWD:/tmp/lint -w /tmp/lint ghcr.io/super-linter/super-linter:latest
+```
+
+```powershell
+docker run --rm -e RUN_LOCAL=true --env-file "./.linter/super-linter.env" -v "$($PWD.Path):/tmp/lint" -w /tmp/lint ghcr.io/super-linter/super-linter:latest
+```
