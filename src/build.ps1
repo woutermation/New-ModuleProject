@@ -2,9 +2,9 @@ param (
     [ValidateSet("Release", "debug")]
     $Configuration = "debug",
     [Parameter(Mandatory = $false)]
-    [String]$NugetAPIKey,
+    [string]$NugetAPIKey,
     [Parameter(Mandatory = $false)]
-    [Switch]$ExportAlias
+    [switch]$ExportAlias
 )
 
 task Init {
@@ -38,23 +38,31 @@ task Init {
 }
 
 task Test {
-    try
-    {
-        Write-Verbose -Message "Running PSScriptAnalyzer on Public functions"
-        Invoke-ScriptAnalyzer ".\Source\Public" -Recurse
-        Write-Verbose -Message "Running PSScriptAnalyzer on Private functions"
-        Invoke-ScriptAnalyzer ".\Source\Private" -Recurse
-    }
-    catch
-    {
-        throw "Couldn't run Script Analyzer"
-    }
-
     Write-Verbose -Message "Running Pester Tests"
-    $Results = Invoke-Pester -Script ".\Tests\*.ps1" -OutputFormat NUnitXml -OutputFile ".\Tests\TestResults.xml"
-    if ($Results.FailedCount -gt 0)
+    if (Get-ChildItem -Path ".\Tests\" -Filter "*tests.ps1")
     {
-        throw "$($Results.FailedCount) Tests failed"
+        Write-Verbose -Message "Pester Tests found, running them now."
+        try
+        {
+            Write-Verbose -Message "Running PSScriptAnalyzer on Public functions"
+            Invoke-ScriptAnalyzer ".\Source\Public" -Recurse
+            Write-Verbose -Message "Running PSScriptAnalyzer on Private functions"
+            Invoke-ScriptAnalyzer ".\Source\Private" -Recurse
+        }
+        catch
+        {
+            throw "Couldn't run Script Analyzer"
+        }
+        $Results = Invoke-Pester -Script ".\Tests\*.ps1" -OutputFormat NUnitXml -OutputFile ".\Tests\TestResults.xml"
+        if ($Results.FailedCount -gt 0)
+        {
+            throw "$($Results.FailedCount) Tests failed"
+        }
+    }
+    else
+    {
+        Write-Warning -Message "No Pester Tests found in .\Tests\*.ps1"
+        return
     }
 }
 
@@ -116,7 +124,7 @@ task DebugBuild -if ($Configuration -eq "debug") {
         $functionsToExport = New-Object -TypeName System.Collections.ArrayList
         foreach ($function in $publicFunctions.Name)
         {
-            write-Verbose -Message "Exporting function: $(($function.split('.')[0]).ToString())"
+            Write-Verbose -Message "Exporting function: $(($function.split('.')[0]).ToString())"
             $functionsToExport.Add(($function.split('.')[0]).ToString())
         }
         Update-ModuleManifest -Path ".\Output\temp\$($ModuleName)\$($ModuleVersion)\$($ModuleName).psd1" -FunctionsToExport $functionsToExport
@@ -137,13 +145,12 @@ task DebugBuild -if ($Configuration -eq "debug") {
             $content = Get-Content -Path ".\Source\Public\$($function)"
             Add-Content -Path $ModuleFile -Value "#Region - $function"
             Add-Content -Path $ModuleFile -Value $content
-            Write-Verbose -Message "Export Alias is set to $($ExportAlias)"
-            if ($ExportAlias.IsPresent)
+            if ($script:ExportAlias.IsPresent)
             {
                 $AliasSwitch = $false
                 $Sel = Select-String -Path ".\Source\Public\$($function)" -Pattern "CmdletBinding" -Context 0, 1
-                $mylist = $Sel.ToString().Split([Environment]::NewLine)
-                foreach ($s in $mylist)
+                $myList = $Sel.ToString().Split([Environment]::NewLine)
+                foreach ($s in $myList)
                 {
                     if ($s -match "Alias")
                     {
@@ -279,12 +286,12 @@ task Build -if($Configuration -eq "Release") {
             $content = Get-Content -Path ".\Source\Public\$($function)"
             Add-Content -Path $ModuleFile -Value "#Region - $function"
             Add-Content -Path $ModuleFile -Value $content
-            if ($ExportAlias.IsPresent)
+            if ($script:ExportAlias.IsPresent)
             {
                 $AliasSwitch = $false
                 $Sel = Select-String -Path ".\Source\Public\$($function)" -Pattern "CmdletBinding" -Context 0, 1
-                $mylist = $Sel.ToString().Split([Environment]::NewLine)
-                foreach ($s in $mylist)
+                $myList = $Sel.ToString().Split([Environment]::NewLine)
+                foreach ($s in $myList)
                 {
                     if ($s -match "Alias")
                     {
@@ -338,7 +345,7 @@ task Build -if($Configuration -eq "Release") {
     }
     catch
     {
-        Write-Warning -Message "Failed appinding the rootmodule to the Module Manifest"
+        Write-Warning -Message "Failed appending the root module to the Module Manifest"
     }
 
     Write-Verbose -Message "Compiling Help files"
@@ -355,7 +362,7 @@ task Build -if($Configuration -eq "Release") {
 
     if (!(Get-ChildItem -Path ".\Docs"))
     {
-        Write-Verbose -Message "Docs folder is empty, generating new fiiles"
+        Write-Verbose -Message "Docs folder is empty, generating new files"
         if (Get-Module -Name $($ModuleName))
         {
             Write-Verbose -Message "Module: $($ModuleName) is imported into session, generating Help Files"
@@ -379,8 +386,6 @@ task Build -if($Configuration -eq "Release") {
             New-ExternalHelp ".\Docs" -OutputPath ".\Output\$($ModuleName)\$($ModuleVersion)\en-US\"
         }
     }
-
-
 }
 
 task Clean -if($Configuration -eq "Release") {
@@ -395,12 +400,12 @@ task Publish -if($Configuration -eq "Release") {
     Write-Verbose -Message "Publishing Module to PowerShell gallery"
     Write-Verbose -Message "Importing Module .\Output\$($ModuleName)\$ModuleVersion\$($ModuleName).psm1"
     Import-Module ".\Output\$($ModuleName)\$ModuleVersion\$($ModuleName).psm1"
-    If ((Get-Module -Name $ModuleName) -and ($NugetAPIKey))
+    If ((Get-Module -Name $ModuleName) -and ($script:NugetAPIKey))
     {
         try
         {
-            write-Verbose -Message "Publishing Module: $($ModuleName)"
-            Publish-Module -Name $ModuleName -NuGetApiKey $NugetAPIKey
+            Write-Verbose -Message "Publishing Module: $($ModuleName)"
+            Publish-Module -Name $ModuleName -NuGetApiKey $script:NugetAPIKey
         }
         catch
         {
