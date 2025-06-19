@@ -145,12 +145,12 @@ task DebugBuild -if ($Configuration -eq "debug") {
             $content = Get-Content -Path ".\Source\Public\$($function)"
             Add-Content -Path $ModuleFile -Value "#Region - $function"
             Add-Content -Path $ModuleFile -Value $content
-            if ($ExportAlias.IsPresent)
+            if ($script:ExportAlias.IsPresent)
             {
                 $AliasSwitch = $false
                 $Sel = Select-String -Path ".\Source\Public\$($function)" -Pattern "CmdletBinding" -Context 0, 1
-                $mylist = $Sel.ToString().Split([Environment]::NewLine)
-                foreach ($s in $mylist)
+                $myList = $Sel.ToString().Split([Environment]::NewLine)
+                foreach ($s in $myList)
                 {
                     if ($s -match "Alias")
                     {
@@ -286,12 +286,12 @@ task Build -if($Configuration -eq "Release") {
             $content = Get-Content -Path ".\Source\Public\$($function)"
             Add-Content -Path $ModuleFile -Value "#Region - $function"
             Add-Content -Path $ModuleFile -Value $content
-            if ($ExportAlias.IsPresent)
+            if ($script:ExportAlias.IsPresent)
             {
                 $AliasSwitch = $false
                 $Sel = Select-String -Path ".\Source\Public\$($function)" -Pattern "CmdletBinding" -Context 0, 1
-                $mylist = $Sel.ToString().Split([Environment]::NewLine)
-                foreach ($s in $mylist)
+                $myList = $Sel.ToString().Split([Environment]::NewLine)
+                foreach ($s in $myList)
                 {
                     if ($s -match "Alias")
                     {
@@ -345,7 +345,7 @@ task Build -if($Configuration -eq "Release") {
     }
     catch
     {
-        Write-Warning -Message "Failed appinding the rootmodule to the Module Manifest"
+        Write-Warning -Message "Failed appending the root module to the Module Manifest"
     }
 
     Write-Verbose -Message "Compiling Help files"
@@ -362,7 +362,7 @@ task Build -if($Configuration -eq "Release") {
 
     if (!(Get-ChildItem -Path ".\Docs"))
     {
-        Write-Verbose -Message "Docs folder is empty, generating new fiiles"
+        Write-Verbose -Message "Docs folder is empty, generating new files"
         if (Get-Module -Name $($ModuleName))
         {
             Write-Verbose -Message "Module: $($ModuleName) is imported into session, generating Help Files"
@@ -400,12 +400,12 @@ task Publish -if($Configuration -eq "Release") {
     Write-Verbose -Message "Publishing Module to PowerShell gallery"
     Write-Verbose -Message "Importing Module .\Output\$($ModuleName)\$ModuleVersion\$($ModuleName).psm1"
     Import-Module ".\Output\$($ModuleName)\$ModuleVersion\$($ModuleName).psm1"
-    If ((Get-Module -Name $ModuleName) -and ($NugetAPIKey))
+    If ((Get-Module -Name $ModuleName) -and ($script:NugetAPIKey))
     {
         try
         {
-            write-Verbose -Message "Publishing Module: $($ModuleName)"
-            Publish-Module -Name $ModuleName -NuGetApiKey $NugetAPIKey
+            Write-Verbose -Message "Publishing Module: $($ModuleName)"
+            Publish-Module -Name $ModuleName -NuGetApiKey $script:NugetAPIKey
         }
         catch
         {
