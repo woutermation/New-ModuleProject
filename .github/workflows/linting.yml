@@ -20,7 +20,8 @@ jobs:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           fetch-depth: 0
-          persist-credentials: false
+          # Required so git-auto-commit-action can push lint fixes back to the PR branch
+          persist-credentials: true
       - name: Load super-linter configuration
         # Use grep inverse matching to exclude eventual comments in the .env file
         # because the GitHub Actions command to set environment variables doesn't
