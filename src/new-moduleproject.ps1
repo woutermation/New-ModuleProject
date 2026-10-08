@@ -1,104 +1,71 @@
-<#PSScriptInfo
-.VERSION
-1.3.10
-
-.GUID
-55ef3a83-4365-4e5e-844b-6ab2d323963b
-
-.AUTHOR
-Christian Hoejsager
-
-.COMPANYNAME
-ScriptingChris
-
-.COPYRIGHT
-Copyright (c) 2021 ScriptingChris
-
-.TAGS
-module project build
-
-.LICENSEURI
-https://scriptingchris.tech/posts/how-to-get-started-developing-a-powershell-module/
-
-.PROJECTURI
-https://github.com/hoejsagerc/New-ModuleProject
-
-.ICONURI
-
-
-.EXTERNALMODULEDEPENDENCIES
-
-
-.REQUIREDSCRIPTS
-
-
-.EXTERNALSCRIPTDEPENDENCIES
-
-
-.RELEASENOTES
-Created a lot of bug fixes to the build.ps1 script.
-Added the the process of exporting aliases from the public functions aswell
-
-#>
-
 <#
 .SYNOPSIS
-Script for easily creating a new module projects folder
+    Creates a new PowerShell module project scaffold.
+
 .DESCRIPTION
-Script which quickly creates a folder structure, Module Manifest and downloads a build.ps1 script
-to use with Invoke-Build module for easy developing, maintaining, building and publishing your
-powershell module.
-Follow project at: https://github.com/hoejsagerc/New-ModuleProject/
-For in-depth help: https://scriptingchris.tech/new-moduleproject_ps1/
+    Generates a module folder structure, creates the module manifest, and optionally installs the
+    required tooling and downloads the default Invoke-Build script used to test, build, and publish
+    the module.
+
+    This script is based on the original work by Christian Hoejsager (GitHub: hoejsagerc), whose
+    project was the starting point for this module scaffolding workflow. The upstream project is no
+    longer actively maintained, so this version continues the same functionality as a forked/custom
+    build on top of the original implementation.
+
+    Original project: https://github.com/hoejsagerc/New-ModuleProject/
+    Additional guidance: https://scriptingchris.tech/new-moduleproject_ps1/
+
 .EXAMPLE
-PS C:\> New-ModuleProject.ps1 -Path ".\" -ModuleName "MyTestModule" -Prerequisites -Initialize -Scripts
+    PS C:\> .\New-ModuleProject.ps1 -Path '.\' -ModuleName 'MyTestModule' -Prerequisites -Initialize -Scripts
 
-This script will create a new folder structure in the path: ".\"
-It will create the following folder structure:
+    Creates the following structure under the provided path:
 
-MyTestModule\
-    |_Docs\
-    |_Output\
-    |_Source\
-    |   |_Public\
-    |   |_Private\
-    |   |_MyTestModule.psd1
-    |_Tests\
-    |_build.ps1
+    MyTestModule\
+        |_ Docs\
+        |_ Output\
+        |_ Source\
+        |   |_ Public\
+        |   |_ Private\
+        |   |_ MyTestModule.psd1
+        |_ Tests\
+        |_ build.ps1
 
-It will then make sure you have to follwoing modules installed:
-- PowerSehllGet (For publishing modules)
-- PlatyPS (For managing Help documentation)
-- Pester (For Unit Testing)
-- PSScriptAnalyzer (For Lint analyzing scripts)
-- InvokeBuild (For building the module)
+    The script also ensures the required development modules are installed and downloads the default
+    build script for the project.
 
-It will then download the build.ps1 script from the GitHub repository
-https://raw.githubusercontent.com/hoejsagerc/New-ModuleProject/main/Source/build.ps1
-
-The build script will be used for testing, building and publishing the module.
-Help to use the build script can be found here: https://scriptingchris.tech/new-moduleproject_ps1/
 .PARAMETER Path
-Provide the Path to where the module should be placed (without the module name itself)
+    The parent folder where the new module should be created. This is the folder that contains the
+    module folder itself, not the module folder name.
+
 .PARAMETER ModuleName
-Provice the name of your module
+    The name of the new module. This value is used as the folder name and module manifest name.
+
 .PARAMETER Prerequisites
-Parameter which will tricker installing of several modules:
-- PowerShellGet
-- PlatyPS
-- Pester
-- InvokeBuild
+    If specified, installs the modules required for building, testing, publishing, and help generation:
+    PowerShellGet, PSScriptAnalyzer, Pester, platyPS, and InvokeBuild.
+
 .PARAMETER Initialize
-Parameter which will tricker the creation of the Module folder structure.
+    If specified, creates the standard folder structure for the module project.
+
 .PARAMETER Scripts
-Parameter which will tricker the download of the default build script from:
-https://raw.githubusercontent.com/hoejsagerc/New-ModuleProject/main/Source/build.ps1
+    If specified, creates the module manifest and downloads the default build script from the project
+    repository.
+
+.PARAMETER RemoveExistingModule
+    If specified, removes an existing module folder at the target path before creating the new one.
+
 .INPUTS
-N/A
+    None. You cannot pipe objects to this script.
+
 .OUTPUTS
-N/A
+    None. The script creates files and folders on disk.
+
 .NOTES
-N/A
+    Original author/developer: Christian Hoejsager (hoejsagerc)
+    Based on the original New-ModuleProject work by hoejsagerc.
+    This version is maintained as a fork/custom continuation of that project.
+    Project: New-ModuleProject
+    Original GitHub: https://github.com/hoejsagerc/New-ModuleProject/
 #>
 
 
@@ -116,20 +83,27 @@ function Add-Folder
 {
     <#
     .SYNOPSIS
-        Create new folder
+        Creates a folder at the specified path if it does not already exist.
     .DESCRIPTION
-        This functions will create a new folder if the folder does not exist
-        The complete path can be specified all parent folders are created
+        Ensures that the requested folder structure exists. Parent folders are created automatically.
+        If the -removeIfPresent switch is supplied, an existing folder at the same path is removed first
+        before the folder is recreated.
     .PARAMETER folderPath
-        The path of the new folder
+        The full path of the folder to create.
+    .PARAMETER removeIfPresent
+        Removes the folder at the target path before recreating it.
     .EXAMPLE
-        Add-Folder -folderPath .\result\$tenantId
+        Add-Folder -folderPath '.\result\$tenantId'
+
+        Creates the nested folder structure for the specified tenant path if it does not already exist.
     .EXAMPLE
-        Add-Folder -folderPath C:\Temp\result
+        Add-Folder -folderPath 'C:\Temp\result' -removeIfPresent
+
+        Deletes any existing folder at that path and recreates it.
     .INPUTS
-        folderPath
+        None. You cannot pipe input to this function.
     .OUTPUTS
-        The created folder, or nothing if it exists
+        None. This function writes status information through verbose logging and does not return a value.
     .NOTES
         Author: Wouter de Dood
     #>

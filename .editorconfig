@@ -1,20 +1,14 @@
-root = true
-
 [*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
 indent_style = space
 indent_size = 4
+
+# Markdown and YML/YAML files should use 2-space indentation
+[*.{md,yml,yaml}]
+indent_size = 2
+
+#  Windows specific files need crlf line endings
+[*.{bat,cmd,ps1,psd1,psm1}]
 end_of_line = crlf
-charset = utf-8
-trim_trailing_whitespace = true
-insert_final_newline = true
-
-[*.json]
-indent_size = 2
-end_of_line = lf
-
-[*.md]
-trim_trailing_whitespace = false
-
-[*.yml]
-indent_size = 2
-end_of_line = lf
