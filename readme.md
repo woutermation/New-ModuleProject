@@ -44,7 +44,7 @@ Invoke-Build -File ./build.ps1
 A temp folder has been created inside the Output folder, and now you can test if the module actually works.
 
 ```powershell
-Import-Module ./Output/temp/newmodule/0.0.1/newmodule.psm1
+Import-Module ./Output/temp/newmodule
 ```
 
 Test the module.
