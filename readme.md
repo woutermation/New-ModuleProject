@@ -1,6 +1,6 @@
 # New-ModuleProject
 
-Powershell script for starting a new Powershell module project
+PowerShell script for starting a new PowerShell module project
 
 ## Create new module
 
