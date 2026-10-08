@@ -34,6 +34,12 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      - name: Load super-linter configuration
+        # Use grep inverse matching to exclude eventual comments in the .env file
+        # because the GitHub Actions command to set environment variables doesn't
+        # support comments.
+        # Ref: https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/workflow-commands-for-github-actions#setting-an-environment-variable
+        run: grep -v '^#' .linter/super-linter.env >> "$GITHUB_ENV"
       - name: Super-linter
         uses: super-linter/super-linter@v9.0.0 # x-release-please-version
         env:
@@ -52,6 +58,12 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
+      - name: Load super-linter configuration
+        # Use grep inverse matching to exclude eventual comments in the .env file
+        # because the GitHub Actions command to set environment variables doesn't
+        # support comments.
+        # Ref: https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/workflow-commands-for-github-actions#setting-an-environment-variable
+        run: grep -v '^#' .linter/super-linter.env >> "$GITHUB_ENV"
       - name: Super-Linter
         uses: super-linter/super-linter@v9.0.0 # x-release-please-version
         env:
@@ -75,3 +87,40 @@ jobs:
           commit_message: "chore: fix linting issues"
           commit_user_name: super-linter
           commit_user_email: super-linter@super-linter.dev
+
+
+          # ---
+# name: "_Platform: Linter"
+
+# on: [pull_request]
+# permissions:
+#   contents: read
+#   packages: read
+#   # To report GitHub Actions status checks
+#   statuses: write
+
+# concurrency: RunLinterOnlyOnce #can be any string, the second job will be queued after the first one is finished
+
+# jobs:
+#   build:
+#     name: Lint
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v4
+#         with:
+#           # super-linter needs the full git history to get the
+#           # list of files that changed across commits
+#           fetch-depth: 0
+#       - name: Load super-linter configuration
+#         # Use grep inverse matching to exclude eventual comments in the .env file
+#         # because the GitHub Actions command to set environment variables doesn't
+#         # support comments.
+#         # Ref: https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/workflow-commands-for-github-actions#setting-an-environment-variable
+#         run: grep -v '^#' .linter/super-linter.env >> "$GITHUB_ENV"
+#       - name: Super-linter
+#         uses: super-linter/super-linter@latest # x-release-please-version
+#         env:
+#           # To report GitHub Actions status checks
+#           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#           DEFAULT_BRANCH: ${{ github.base_ref }}
